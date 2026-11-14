@@ -1,0 +1,5 @@
+person_id,email,name,role,course_code,course_name,deadline
+T014,setter1@example.com,Dr. A. B. Deshmukh,Paper Setter,BECVE501T,Design of Steel Structures,30 November 2026
+T022,setter2@example.com,Prof. S. R. Kale,Paper Setter,BECVE503T,Geotechnical Engineering,30 November 2026
+T031,valuer1@example.com,Dr. M. N. Thakre,Valuer,BECVE501T,Design of Steel Structures,20 December 2026
+T014,setter1@example.com,Dr. A. B. Deshmukh,Valuer,BECVE503T,Geotechnical Engineering,20 December 2026

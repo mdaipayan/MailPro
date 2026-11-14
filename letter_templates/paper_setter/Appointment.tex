@@ -1,0 +1,96 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{graphicx}
+\geometry{left=0.75in, right=0.75in, top=2in, bottom=0.75in}
+\usepackage{csvsimple}
+\usepackage[style=ddmmyyyy]{datetime2}
+\usepackage{eso-pic}
+\usepackage{enumitem}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\DTMrenewdatestyle{ddmmyyyy}{
+  \renewcommand{\DTMdisplaydate}[4]{\DTMtwodigits{##3}.\DTMtwodigits{##2}.##1}
+}
+
+\begin{document}
+\DTMsetdatestyle{ddmmyyyy}
+\pagenumbering{gobble} % Disables page numbers
+\csvreader[head to column names]{mailmerge_database.csv}{}{
+% Start a new page FIRST, then put the letterhead on it. In the old order
+% (letterhead, then \clearpage) the letterhead went to the page before, so the
+% LAST letter of the list was printed without a letterhead.
+\clearpage
+% ---------- Background ----------
+  \AddToShipoutPicture*{
+    \put(0,0){
+      \includegraphics[width=\paperwidth,height=\paperheight]{Admit_card_background.png}
+    }
+  }
+\begin{flushright}
+    \textbf{CONFIDENTIAL}\\
+   \textbf{ Date: 24-03-2026}
+\end{flushright}
+
+
+\vspace{0.10cm}
+
+\noindent\textbf{From:} \\
+Controller of Examination\\
+KITS, Ramtek-441106\\
+
+\vspace{0.10cm}
+
+\noindent\textbf{To,} \\
+\salutation\hspace{1mm} \name \\
+\institute,\hspace{1mm}\place \\
+
+\vspace{0.15cm}
+
+\noindent Dear Sir/Madam, \\
+
+\noindent As directed by the Board of Studies, Kavikulguru Institute of Technology and Science, Ramtek (Autonomous), I have the pleasure to invite you as an question paper setter of the subject, \textbf{\coursetitle,\hspace{1mm}}\textit{\program\hspace{1mm} (\sem\hspace{1mm} Sem.) End Semester (C.B.C.S.) NEP Examination of \branch} of \textbf{\exam}. 
+
+\vspace{0.15cm}
+
+\noindent I request you to prepare ONE set of question paper in accordance with the syllabus and strict compliance with guidelines for the question paper. Question paper should be prepared in the shared file (ESE Question Paper Template only) and submit the soft copy of the same on or before \submissiondate. Kindly revert back on the same mail.
+
+\vspace{0.15cm}
+
+\noindent You are requested to mail the remuneration bill with your digital signature or scanned copy of bill duly signed with complete bank details.
+
+
+\vspace{0.15cm}
+
+\noindent I enclose herewith the following:
+
+\vspace{0.15cm}
+
+\begin{enumerate}[label=\arabic*., itemsep=-10pt, topsep=0pt, parsep=0pt, partopsep=0pt]
+    \item {Form of Acceptance} \\
+    \item {Syllabus} \\
+    \item {Guidelines to Question Paper Setters} \\
+    \item {ESE Question Paper Template} \\
+    \item {Form of Undertaking by the Paper Setter} \\
+    \item {Remuneration Bill Form} \\
+\end{enumerate}
+
+\vspace{0.15cm}
+
+\noindent Paper setter shall kindly communicate Acceptance/Regret immediately and submit within stipulated date by mail coe@kits.edu
+
+
+\vspace{0.15cm}
+\begin{flushright}
+    \noindent \textbf{Yours faithfully,} \\
+
+    \includegraphics[width=3cm]{signAND-removebg-preview.png}\\
+
+    \noindent\textbf{Controller of Examination}\\
+    KITS, Ramtek
+\end{flushright}
+
+}
+\end{document}

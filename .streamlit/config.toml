@@ -1,0 +1,8 @@
+[server]
+maxUploadSize = 50          # MB per uploaded file
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"     # hide the developer menu from users

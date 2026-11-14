@@ -1,0 +1,19 @@
+Subject: Confidential: Appointment as Paper Setter for {{ coursetitle }} ({{ coursecode }}), {{ exam }}
+
+Dear {{ salutation }} {{ name }},
+
+You are appointed as Paper Setter for {{ coursetitle }} ({{ coursecode }}), {{ program }} {{ sem }} Semester, {{ branch }}, for the {{ exam }} examination.
+
+Please find attached:
+1. Appointment letter
+2. Form of Acceptance
+3. Form of Undertaking
+4. Syllabus, guidelines, question paper template and remuneration bill form
+
+Kindly send your acceptance by reply to this email, and submit the question paper on or before {{ submissiondate }}.
+
+This email and its attachments are strictly confidential.
+
+Regards,
+Controller of Examination
+KITS, Ramtek

@@ -1,0 +1,84 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{graphicx}
+\geometry{left=0.75in, right=0.75in, top=2.2in, bottom=0.75in}
+\usepackage{lmodern}
+\usepackage{csvsimple}
+\usepackage{parskip}
+\usepackage{eso-pic}
+\setstretch{1.2}
+\setlength{\parindent}{0pt}
+
+% The current mail-merge CSV has no datefield column.  Keep the acceptance
+% date blank for the recipient to complete, while still allowing a future
+% datefield column to override this default.
+\providecommand{\datefield}{\underline{\hspace{3cm}}}
+
+\begin{document}
+
+% Load data from CSV and repeat the template for each row
+\csvreader[head to column names]{mailmerge_database.csv}{}{
+% ---------- Background ----------
+  \AddToShipoutPictureBG{
+    \put(0,0){
+      \includegraphics[width=\paperwidth,height=\paperheight]{Admit_card_background.png}
+    }
+  }
+% Start a new page for each recipient
+\clearpage
+\pagenumbering{gobble} % Disables page numbers
+
+\vspace{1em}
+\textbf{Date:} \datefield{}
+
+\vspace{1.5em}
+\begin{center}
+    \textbf{\large ACCEPTANCE FORM}
+\end{center}
+
+\vspace{1em}
+To, \\
+The Controller of Examination \\
+KITS, Ramtek
+
+\vspace{1em}
+\textbf{Subject:} Acceptance of appointment as Paper Setter
+
+\vspace{1em}
+\textbf{Reference Number:} \underline{\hspace{8cm}}
+
+\vspace{1em}
+\textbf{Dear Sir,}
+
+\vspace{1em}
+I accept the appointment as Paper Setter for the Course/Subject mentioned below:
+
+\vspace{0.5em}
+\begin{tabbing}
+\textbf{Examination Name:} \hspace{1.0cm} \= \exam \\
+\textbf{Programme:} \> \program \\
+\textbf{Branch:} \> \branch \\
+\textbf{Semester:} \> \sem \\
+\textbf{Course Code: }\> \coursecode \\
+\textbf{Course Title:} \> \coursetitle \\
+\textbf{No. of Sets:} \> One
+\end{tabbing}
+
+\vspace{1em}
+I agree to abide by the stipulated conditions laid down in connection with the conduction of the examination.
+
+\vspace{2em}
+Yours sincerely, \\
+\vspace{1em}
+
+\underline{\hspace{5cm}}\\
+\textbf{\salutation\hspace{1mm}\name} \\
+\vspace{0.5em}
+\textbf{Date:} \datefield
+
+} % End of csvreader
+
+\end{document}

@@ -1,0 +1,68 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{left=0.8in, right=0.8in, top=2.2in, bottom=0.8in}
+\usepackage{setspace}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{csvsimple}
+\usepackage[style=ddmmyyyy]{datetime2}
+\usepackage{eso-pic}
+\setstretch{1.1}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\csvreader[head to column names]{mailmerge_database.csv}{}{
+\clearpage
+\AddToShipoutPictureBG*{
+  \put(0,0){
+    \includegraphics[width=\paperwidth,height=\paperheight]{Admit_card_background.png}
+  }
+}
+\pagenumbering{gobble} % Disables page numbers
+Ref. No.: KITS/COE/2025--26/ \hfill Date: \underline{\hspace{1.5cm}}/\underline{\hspace{1.5cm}}/2026
+
+\vspace{1em}
+\begin{center}
+    \textbf{\large UNDERTAKING LETTER}
+\end{center}
+
+\vspace{0.5em}
+I, the undersigned, undertake to maintain secrecy in matters of paper setting and other assigned work, including correspondence about Kavikulguru Institute of Technology and Science, Ramtek, Nagpur.
+
+\vspace{0.5em}
+
+\begin{tabbing}
+\textbf{Examination Name:} \hspace{1.0cm} \= \exam \\
+\textbf{Programme:} \> \program \\
+\textbf{Branch:} \> \branch \\
+\textbf{Semester:} \> \sem \\
+\textbf{Course Code: }\> \coursecode \\
+\textbf{Course Title:} \> \coursetitle \\
+\textbf{No. of Sets:} \> One
+\end{tabbing}
+
+\vspace{1em}
+1. I assure you that I shall maintain utmost secrecy in the work entrusted to me for the End Semester Examination and discharge all my duties impartially without involvement in any type of malpractice which violates the code of conduct of examination. \\
+2. No relative* of mine is appearing in the examination for which the work is assigned to me. \\
+3. While setting questions, I have strictly followed the distribution of marks as per the syllabus. The entire syllabus is covered, the questions can be answered within the stipulated time, and no question or part is repeated. \\
+4. All questions are within the scope of the syllabus. The number of questions and the marks allotted are accurate and total correctly. \\
+5. Requirements like graph paper, polar graph paper, charts/tables, etc. are mentioned in the instructions. \\
+6. I have destroyed/deleted any material that could lead to question paper leakage. \\
+7. I assure that the paper is completely prepared by me and I have followed all "Guidelines for Paper Setter."
+
+\vspace{0.5em}
+\textbf{Note:} Paper Setter should digitally sign and add name on each page of the soft copy of the question paper.
+
+\vspace{1.5em}
+
+Signature: \underline{\hspace{6cm}} \\
+Full Name: \salutation\ \name \\
+Place: \place \hfill Date: \underline{\hspace{3cm}} \\
+Mobile No.: \underline{\hspace{6cm}} \\
+College: \institute, \place
+
+}
+
+\end{document}

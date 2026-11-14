@@ -1,0 +1,13 @@
+From: Exam Cell KITS <your.name@gmail.com>
+To: {{ name }} <{{ email }}>
+Subject: Marks for {{ course }}
+
+Dear {{ name }},
+
+Your marks in {{ course }} are {{ marks }} out of 100.
+{% if marks|int < 40 %}
+Please meet your course teacher for the re-test schedule.
+{% endif %}
+
+Regards,
+Exam Cell

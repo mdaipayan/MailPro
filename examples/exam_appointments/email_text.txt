@@ -1,0 +1,21 @@
+SUBJECT (paste into the Subject box):
+Confidential: Appointment as {{ role }} for {{ course_code }} {{ course_name }}
+
+BODY (paste into the Body box):
+Dear {{ name }},
+
+You are appointed as {{ role }} for the course {{ course_code }} {{ course_name }}.
+Your appointment letter is attached. The general guidelines are also attached.
+
+{% if role == "Paper Setter" %}
+Please submit the question paper and the scheme of marking in a sealed
+cover on or before {{ deadline }}. Do not send the question paper by email.
+{% else %}
+Please complete the valuation and submit the marks on or before {{ deadline }}.
+{% endif %}
+
+This email and its attachments are confidential.
+Please reply to confirm that you accept.
+
+Regards,
+Controller of Examinations

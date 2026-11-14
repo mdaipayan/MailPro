@@ -1,0 +1,14 @@
+Subject: Appointment as External Practical Examiner for {{ course }} ({{ coursecode }}), {{ exam }}
+
+Dear {{ salutation }} {{ name }},
+
+You are appointed as External Practical Examiner for {{ course }} ({{ coursecode }}), {{ program }} {{ sem }} Semester, {{ branch }}, {{ exam }}.
+
+Date: {{ date }}, {{ day }}
+Time: 10:00 AM to 5:00 PM
+
+Your appointment letter is attached. Kindly send your acceptance by reply to this email.
+
+Regards,
+Controller of Examination
+KITS, Ramtek

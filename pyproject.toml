@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mailmerge-lite"
+version = "0.7.0"
+description = "Send personalised emails from a CSV file and a Jinja2 template."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Daipayan Mandal" }]
+dependencies = ["jinja2>=3.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=7", "pypdf>=4"]
+app = ["streamlit>=1.43", "pypdf>=4"]
+
+[project.scripts]
+mailmerge = "mailmerge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

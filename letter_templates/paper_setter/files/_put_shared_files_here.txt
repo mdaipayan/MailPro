@@ -1,0 +1,3 @@
+Put here the shared files that the list names, for example the syllabus PDFs,
+Guidelines.pdf, Remuneration.pdf, Question_Paper_60.pdf.
+The app finds them by the names written in the list.

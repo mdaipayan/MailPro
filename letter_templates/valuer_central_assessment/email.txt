@@ -1,0 +1,15 @@
+Subject: Confidential: Appointment as Examiner for {{ coursetitle }} ({{ coursecode }}), {{ exam }}
+
+Dear {{ salutation }} {{ name }},
+
+You are appointed as Examiner for the central assessment of answer books of {{ coursetitle }} ({{ coursecode }}), {{ program }} {{ sem }} Semester, {{ branch }}, {{ exam }}.
+
+Please report to the Valuation In-charge at the Examination Cell, KITS, Ramtek on {{ date }}. Your appointment letter is attached.
+
+Kindly confirm your availability by reply to this email.
+
+This email and its attachment are strictly confidential.
+
+Regards,
+Controller of Examination
+KITS, Ramtek

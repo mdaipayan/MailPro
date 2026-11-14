@@ -1,0 +1,113 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[right=1in, left=1in, top=2.5in, bottom=1in]{geometry}
+\usepackage{setspace}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{mathptmx} % Times New Roman font
+\setstretch{1.05}
+\usepackage{csvsimple}
+\usepackage{ifthen}
+\usepackage[style=ddmmyyyy]{datetime2}
+\usepackage{eso-pic}
+\hbadness=10000
+\hfuzz=1pt
+\DTMrenewdatestyle{ddmmyyyy}{
+  \renewcommand{\DTMdisplaydate}[4]{\DTMtwodigits{##3}.\DTMtwodigits{##2}.##1}
+}
+
+\begin{document}
+\DTMsetdatestyle{ddmmyyyy}
+\csvreader[head to column names]{mailmerge_database_Practical_2S.csv}{}{
+
+% ---------- Background ----------
+  \AddToShipoutPictureBG{
+    \put(0,0){
+      \includegraphics[width=\paperwidth,height=\paperheight]{Admit_card_background.png}
+    }
+  }
+
+\clearpage
+\thispagestyle{empty} % No page number
+\noindent
+\textbf{Ref No.:} KITS/COE/EXTERNAL EXAMINER/S-2025-26 \hfill \textbf{Date:} \today
+
+
+\vspace{0.2cm}
+
+\noindent
+\textbf{From:} \\
+Controller of Examination \\
+KITS, Ramtek-441106
+
+\vspace{0.2cm}
+
+\noindent
+\textbf{To,} \\
+\salutation\hspace{1mm} \name \\
+\institute,\hspace{1mm}\place \\
+
+\vspace{0.2cm}
+
+\noindent
+\textbf{Subject: Appointment as an External Practical Examiner}
+
+\vspace{0.2cm}
+
+\noindent
+Sir/Madam,
+
+\vspace{0.2cm}
+
+\noindent
+I am glad to inform you that you have been appointed as an External Practical Examiner for the following Course/Subject for the End Semester (C.B.C.S.) NEP Practical Examination, \exam:
+
+\vspace{0.2cm}
+
+\noindent
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{1.8cm}|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{2.7cm}|>{\raggedright\arraybackslash}p{2.2cm}|}
+\hline
+\textbf{Semester} & \textbf{Programme} & \textbf{Course/Subject Name} & \textbf{Date \& Day} & \textbf{Time} \\
+\hline
+\program\hspace{1mm}\sem & \branch & \course & \date, \day & 10:00 AM to 5:00 PM \\
+\hline
+\end{tabular}
+\normalsize
+\vspace{0.2cm}
+
+\noindent
+After completion of the work, the remuneration and payment of TA/DA as applicable to an External Examiner will be done upon submission of the necessary bills.
+
+\vspace{0.2cm}
+
+\noindent
+Your kind attention is invited to the following:
+
+\vspace{0.1cm}
+
+\noindent
+\emph{``If any near relation, i.e., father, mother, wife, husband, son, daughter, brother, sister, uncle, aunt, nephew, brother-in-law, sister-in-law, first cousin, etc. or dependent of the person who has been offered appointment as an Examiner, is expected to appear at the examination in the said Course/Subject, he/she shall inform the CoE, KITS, Ramtek accordingly. Appointment in such a situation is not permissible.''}
+
+\vspace{0.2cm}
+
+\noindent
+You are requested to communicate your acceptance for the appointment as an External Examiner at \texttt{coe@kits.edu}.
+
+\vspace{0.3cm}
+
+\noindent
+\hfill Yours faithfully,
+
+\vspace{0.3cm}
+
+\noindent
+\hfill \includegraphics[width=3cm]{signAND-removebg-preview.png}
+\noindent
+\begin{flushright}
+    \hfill Controller of Examination \\
+\hfill KITS, Ramtek
+\end{flushright}
+
+}
+\end{document}

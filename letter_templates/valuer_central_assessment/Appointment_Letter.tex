@@ -1,0 +1,100 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{graphicx}
+\geometry{left=0.75in, right=0.75in, top=2in, bottom=0.75in}
+\usepackage{csvsimple}
+\usepackage[style=ddmmyyyy]{datetime2}
+\usepackage{eso-pic}
+\hbadness=10000
+\hfuzz=1pt
+\emergencystretch=2em
+\DTMrenewdatestyle{ddmmyyyy}{
+  \renewcommand{\DTMdisplaydate}[4]{\DTMtwodigits{##3}.\DTMtwodigits{##2}.##1}
+}
+
+\begin{document}
+\DTMsetdatestyle{ddmmyyyy}
+\pagenumbering{gobble} % Disables page numbers
+\csvreader[head to column names]{mailmerge_database_9.csv}{}{
+% ---------- Background ----------
+  \IfFileExists{Admit_card_background.png}{
+  \AddToShipoutPictureBG{
+    \put(0,0){
+      \includegraphics[width=\paperwidth,height=\paperheight]{Admit_card_background.png}
+    }
+  }
+}{}
+
+%\clearpage
+\begin{flushright}
+     \textbf{FORM NO. : E5}\\
+    \textbf{EXAMINERS FOR CENTRAL ASSESSMENT}\\
+    \textbf{CONFIDENTIAL}\\
+   \textbf{ Date: \today}
+\end{flushright}
+
+
+\vspace{0.10cm}
+
+\noindent\textbf{From:} \\
+Controller of Examination\\
+KITS, Ramtek-441106\\
+
+\vspace{0.10cm}
+
+\noindent\textbf{To,} \\
+\salutation\hspace{1mm} \name \\
+\institute,\hspace{1mm}\place \\
+
+\vspace{0.15cm}
+
+\noindent Dear Sir/Madam, \\
+
+\noindent This is to inform you that the Board of Examinations of Kavikulguru Institute of Technology and Science, Ramtek (Autonomous) has appointed you as an Examiner for the assessment of the answer books of the subject \textbf{\coursetitle,\hspace{1mm}\program\hspace{1mm} (\sem\hspace{1mm} Sem.) End Semester (C.B.C.S.) NEP Examination of \branch} of \textbf{\exam}. 
+
+\vspace{0.15cm}
+
+\noindent The assessment of the answer books of the above-mentioned subject/course is to be done at the Examination Cell, 1st Floor, KITS, Ramtek - 441106.
+
+\vspace{0.15cm}
+
+\noindent Your appointment as an Examiner should be kept strictly confidential. All correspondence in this regard should be addressed to the undersigned by his name and designation both.
+
+\vspace{0.15cm}
+
+\noindent You are requested to \textbf{report} to the \textbf{Valuation In-charge (Room No.934)} on \textbf{\date}. 
+
+\vspace{0.15cm}
+
+\noindent The Spot Valuation shall continue from \textbf{11-00 A.M. to 5-00 P.M.} daily during the working hours of the Institute. This work is likely to be continued up to \textbf{7 days}, depending upon the number of answer books. Each Examiner shall assess a minimum \textbf{30 answer books} per day or maximum \textbf{60 answer books} per day.
+
+\vspace{0.15cm}
+
+\noindent After the completion of the work, the remuneration of the work \& the payment of TA/DA bills to an outside Examiner will be done on submission of the necessary bills by the Examiner in the prescribed proforma after standard deduction.
+
+\vspace{0.15cm}
+
+\noindent\textbf{You are requested to confirm your availability without fail so that further alternate arrangement can be made. Please respond immediately.}
+
+\vspace{0.15cm}
+
+\noindent \textbf{Your kind attention is invited to the following:}
+
+\vspace{0.15cm}
+
+\noindent \textit{“If any near relation, i.e., father, mother, wife, husband, son, daughter, brother, sister, uncle, aunt, nephew, brother-in-law, sister-in-law, first cousin, etc. or dependent of the person” who has been offered appointment as an Examiner, is expected to appear at the examination in the said Subject/Paper, he/she shall inform the COE, KITS, Ramtek accordingly. Appointment in such a situation is not permissible.}
+
+\vspace{0.15cm}
+\begin{flushright}
+    \noindent \textbf{Yours faithfully,} \\
+
+    \includegraphics[width=3cm]{signAND-removebg-preview.png}\\
+
+    \noindent\textbf{Controller of Examination}\\
+    KITS, Ramtek
+\end{flushright}
+
+}
+\end{document}

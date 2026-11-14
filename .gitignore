@@ -1,0 +1,19 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+.venv/
+/mailmerge_log.csv
+*.eml
+/mailmerge_server.conf
+
+# Letter library: keep the letterhead and signature images out of GitHub
+letter_templates/**/*.png
+letter_templates/**/*.jpg
+letter_templates/**/*.jpeg
+
+# Secrets and private data: never in GitHub
+.streamlit/secrets.toml
+*.csv
+!examples/**/*.csv
+!examples/*.csv
