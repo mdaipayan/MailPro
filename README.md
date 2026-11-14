@@ -105,8 +105,9 @@ Safety rules in the app:
 
 ### Running it online (GitHub + Streamlit Community Cloud)
 
-See **`DEPLOY.md`**. In short: the code goes to GitHub, and the letterhead,
-signature and app password go into the app's private Secrets, never into GitHub.
+See **`DEPLOY.md`**. In short: the code goes to GitHub, the app password is one
+line in the app's private Secrets, and the letterhead and signature are uploaded
+in the app each time (tab 3 → B · Letters). They are never in GitHub.
 Online, the app refuses to open until an app password is set.
 
 On a PC the app password is optional. To set one, use the environment variable

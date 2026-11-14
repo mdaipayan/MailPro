@@ -36,8 +36,8 @@ except ImportError:  # running straight from the repo, e.g. Streamlit Cloud
 
 from mailmerge.attachments import (assign_files, check_size, columns_naming_files,
                                    expand_uploads, pick_files)
-from mailmerge.letters import (LetterSet, build_letters, load_library, missing_images,
-                               odd_letters)
+from mailmerge.letters import (LetterSet, build_letters, fit_image, image_role,
+                               load_library, missing_images, odd_letters)
 from mailmerge.core import ADDRESS_RE, MergeError, MessageTemplate, check_rows, parse_database
 from mailmerge.sender import Sender, ServerConfig
 
@@ -435,13 +435,19 @@ with tab_files:
                     lacking = sorted({m for _, t in chosen.letters
                                       for m in missing_images(t, set_images)})
                     if lacking:
-                        img_up = st.file_uploader(
-                            "Letterhead and signature images: " + ", ".join(lacking),
-                            accept_multiple_files=True, key="lib_images",
-                            help="These images are kept out of GitHub on purpose. Upload "
-                                 "them here for this session, or store them once in the "
-                                 "app's Secrets (see DEPLOY.md).")
-                        set_images.update({f.name: f.getvalue() for f in img_up or []})
+                        st.markdown("**Upload the letterhead and signature** "
+                                    "(needed once each time you open the app)")
+                        for slot, need in zip(st.columns(len(lacking)), lacking):
+                            pic = slot.file_uploader(
+                                image_role(need), type=["png", "jpg", "jpeg"],
+                                key=f"img_{need}",
+                                help=f"Any file name is fine. The letters use it as {need}. "
+                                     "It is kept only while this page is open.")
+                            if pic is not None:
+                                try:
+                                    set_images[need] = fit_image(need, pic.getvalue())
+                                except MergeError as exc:
+                                    slot.error(str(exc))
                     set_support = tuple(sorted(set_images.items()))
                     st.markdown("**Letters in this set** (untick one to leave it out)")
                     for tex_name, tex_bytes in chosen.letters:
@@ -454,8 +460,9 @@ with tab_files:
                                              hashlib.sha1(tex_bytes).hexdigest(), attach_name))
                         still = missing_images(tex_bytes, set_images)
                         if still:
-                            text = ("needs the image " + ", ".join(still)
-                                    + ". Upload it above. The letter is not made without it.")
+                            text = ("needs the image " + ", ".join(still) + " ("
+                                    + " and ".join(image_role(n).lower() for n in still)
+                                    + "). Upload it above. The letter is not made without it.")
                             letter_errors.append(f"{attach_name} {text}")
                             t2.warning(f"This letter {text}")
                             continue

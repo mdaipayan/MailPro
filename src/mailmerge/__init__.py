@@ -11,7 +11,8 @@ from .core import (
     render_message,
 )
 from .attachments import assign_files, check_size, expand_uploads, pick_files
-from .letters import LetterSet, build_letters, images_needed, load_library, missing_images, odd_letters
+from .letters import (LetterSet, build_letters, fit_image, image_role, images_needed,
+                      load_library, missing_images, odd_letters)
 from .sender import Sender, ServerConfig
 
 __all__ = [
@@ -31,9 +32,11 @@ __all__ = [
     "images_needed",
     "missing_images",
     "odd_letters",
+    "fit_image",
+    "image_role",
     "LetterSet",
     "check_size",
     "ServerConfig",
     "Sender",
 ]
-__version__ = "0.7.0"
+__version__ = "0.8.0"
