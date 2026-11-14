@@ -96,6 +96,11 @@ def gate() -> None:
     app refuses to open at all until a password has been set.
     """
     need = os.environ.get("MAILMERGE_APP_PASSWORD") or secret("app_password")
+    if need is not None and not isinstance(need, str) and hasattr(need, "keys"):
+        # Secrets written as a group:  [app_password]  app_password = "..."
+        values = [need[k] for k in need.keys()]
+        need = need.get("app_password") or next((v for v in values if isinstance(v, str)), None)
+    need = str(need).strip() if need else None
     if not need:
         if on_cloud():
             st.error("This app is locked: no app password has been set. "
@@ -110,7 +115,7 @@ def gate() -> None:
         st.caption("For the Examination Section only.")
         pw = st.text_input("App password", type="password", key="gate_password")
         if st.button("Open", type="primary", key="gate_btn"):
-            if hmac.compare_digest(pw.encode("utf-8"), str(need).encode("utf-8")):
+            if hmac.compare_digest(pw.strip().encode("utf-8"), need.encode("utf-8")):
                 ss["unlocked"] = True
                 st.rerun()
             time.sleep(2)                 # slows down password guessing
