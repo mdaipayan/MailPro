@@ -423,3 +423,24 @@ def test_images_needed_and_missing():
     assert images_needed(tex) == ["sign.png", "letterhead", "bg.png"]
     assert missing_images(tex, ["sign.png", "letterhead.jpg"]) == ["bg.png"]
     assert missing_images(tex, ["sign.png", "letterhead.jpg", "bg.png"]) == []
+
+
+def test_fit_image_any_name_any_format():
+    PIL = pytest.importorskip("PIL")
+    import io
+    from PIL import Image
+    from mailmerge import fit_image, image_role
+    buf = io.BytesIO(); Image.new("RGBA", (4, 4), (255, 0, 0, 0)).save(buf, "PNG"); png = buf.getvalue()
+    buf = io.BytesIO(); Image.new("RGB", (4, 4), "blue").save(buf, "JPEG"); jpg = buf.getvalue()
+
+    assert fit_image("sign.png", png) is png                       # already right
+    assert fit_image("sign.png", jpg).startswith(b"\x89PNG")       # JPG -> PNG
+    as_jpg = fit_image("letterhead.jpg", png)                      # PNG -> JPG, white behind
+    assert as_jpg.startswith(b"\xff\xd8\xff")
+    assert Image.open(io.BytesIO(as_jpg)).getpixel((1, 1))[0] > 240
+    with pytest.raises(MergeError, match="not a PNG or JPG"):
+        fit_image("sign.png", b"hello")
+
+    assert image_role("signAND-removebg-preview.png") == "Signature"
+    assert image_role("Admit_card_background.png") == "Letterhead"
+    assert image_role("photo1.png") == "Image"

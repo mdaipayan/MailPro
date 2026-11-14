@@ -312,3 +312,17 @@ def test_letter_without_letterhead_is_caught(monkeypatch, tmp_path):
     support = [("bg.png", _tiny_png())]
     assert odd_letters(build_letters("bad.tex", bad, csv, support)) == [3]
     assert odd_letters(build_letters("good.tex", good, csv, support)) == []
+
+
+def test_password_written_as_a_group_in_secrets_still_works(monkeypatch):
+    """Secrets typed as   [app_password]  app_password = "..."   (a common slip)."""
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    monkeypatch.delenv("MAILMERGE_APP_PASSWORD", raising=False)
+    monkeypatch.setenv("MAILMERGE_REQUIRE_PASSWORD", "1")
+    at = AppTest.from_file(APP, default_timeout=30)
+    at.secrets["app_password"] = {"app_password": "exam-cell-2026"}
+    at.run()
+    assert not at.tabs and not at.error            # locked, and not "no password set"
+    at.text_input(key="gate_password").input("exam-cell-2026 ").run()   # stray space is fine
+    at.button(key="gate_btn").click().run()
+    assert at.tabs and not at.exception

@@ -63,6 +63,53 @@ def missing_images(tex: Union[bytes, str], available: Iterable[str]) -> List[str
     return [n for n in images_needed(tex) if n not in names and n not in stems]
 
 
+def image_role(name: str) -> str:
+    """A friendly label for an image a template needs."""
+    low = name.lower()
+    if "sign" in low:
+        return "Signature"
+    if any(k in low for k in ("background", "letterhead", "letter_head", "bg", "header")):
+        return "Letterhead"
+    if "logo" in low:
+        return "Logo"
+    return "Image"
+
+
+def fit_image(expected_name: str, data: bytes) -> bytes:
+    """Make an uploaded picture usable under the name the template expects.
+
+    The person may upload 'sign.jpg' where the template wants
+    'signature.png'. LaTeX goes by the file extension, so the picture is
+    converted to that format when the two differ.
+    """
+    kinds = {b"\x89PNG": "png", b"\xff\xd8\xff": "jpg", b"%PDF": "pdf"}
+    actual = next((k for magic, k in kinds.items() if data.startswith(magic)), None)
+    wanted = expected_name.rsplit(".", 1)[-1].lower() if "." in expected_name else actual
+    wanted = "jpg" if wanted == "jpeg" else wanted
+    if actual is None:
+        raise MergeError(f"{expected_name}: the uploaded file is not a PNG or JPG picture.")
+    if actual == wanted:
+        return data
+    if "pdf" in (actual, wanted):
+        raise MergeError(f"{expected_name}: please upload a {wanted.upper()} file.")
+    try:
+        from PIL import Image
+    except ImportError:
+        raise MergeError(f"{expected_name}: please upload a {wanted.upper()} file.") from None
+    img = Image.open(io.BytesIO(data))
+    out = io.BytesIO()
+    if wanted == "jpg":
+        if img.mode in ("RGBA", "LA", "P"):          # JPG has no transparency
+            rgba = img.convert("RGBA")
+            white = Image.new("RGB", rgba.size, "white")
+            white.paste(rgba, mask=rgba.split()[-1])
+            img = white
+        img.convert("RGB").save(out, "JPEG", quality=92)
+    else:
+        img.save(out, "PNG")
+    return out.getvalue()
+
+
 def _tex_field(value: str) -> str:
     value = _SPECIAL.sub(r"\\\1", value)          # & % # $ _  ->  \& \% ...
     return "{" + value + "}" if "," in value else value   # protect commas
