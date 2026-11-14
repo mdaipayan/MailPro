@@ -7,7 +7,7 @@ name = "mailmerge-lite"
 version = "0.7.0"
 description = "Send personalised emails from a CSV file and a Jinja2 template."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Daipayan Mandal" }]
 dependencies = ["jinja2>=3.0"]
