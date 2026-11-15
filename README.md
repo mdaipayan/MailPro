@@ -1,4 +1,6 @@
-# mailmerge
+# MailPro
+
+Developed by Daipayan Mandal.
 
 Send one personalised email per row of a CSV file.
 Use it in two ways: a **browser app** (for office staff) or a **command-line tool**.
