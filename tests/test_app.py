@@ -111,7 +111,12 @@ def test_full_send_and_conditional_text(app):
     real = FakeSMTP.sent[1:]
     assert [r for _, r, _ in real] == [["student1@example.com"], ["student2@example.com"]]
     assert "re-test" not in real[0][2] and "re-test" in real[1][2]
-    assert any("all 2 emails were sent" in s.value for s in at.success)
+    assert any("all 2 emails were sent by MailPro" in s.value and "IST" in s.value
+               for s in at.success)
+    assert any("MailPro v" in c.value and "Developed by **Daipayan Mandal**" in c.value
+               and "IST" in c.value for c in at.caption)
+    log = at.session_state["results"]["rows"]
+    assert all(r["app"].startswith("MailPro v") and r["time"].endswith("IST") for r in log.values())
     assert not any(b.key == "send_btn" for b in at.button)   # cannot send twice
 
 

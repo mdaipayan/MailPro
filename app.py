@@ -1,4 +1,4 @@
-"""Mail Merge app (Stage 1).
+"""MailPro: mail merge app for the Examination Section.
 
 Run:  streamlit run app.py
 
@@ -23,7 +23,7 @@ import io
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from email.utils import formataddr
 from pathlib import Path
 
@@ -40,6 +40,7 @@ from mailmerge.letters import (LetterSet, build_letters, fit_image, image_role,
                                load_library, missing_images, odd_letters)
 from mailmerge.core import ADDRESS_RE, MergeError, MessageTemplate, check_rows, parse_database
 from mailmerge.sender import Sender, ServerConfig
+from mailmerge import __version__
 
 PRESETS = {
     "Gmail": ("smtp.gmail.com", 587, "starttls"),
@@ -70,7 +71,22 @@ LIBRARY_DIR = Path(os.environ.get("MAILMERGE_TEMPLATES")
 
 DEFAULT_BODY = "Dear {{ name }},\n\nWrite your message here.\n\nRegards,\n"
 
-st.set_page_config(page_title="Mail Merge", page_icon="✉️", layout="wide")
+APP_NAME = "MailPro"
+DEVELOPER = "Daipayan Mandal"
+APP_LABEL = f"{APP_NAME} v{__version__}"
+IST = timezone(timedelta(hours=5, minutes=30), "IST")   # the server clock is UTC
+
+
+def now_ist() -> datetime:
+    return datetime.now(IST)
+
+
+def stamp(moment: datetime = None) -> str:
+    """'15 Nov 2026, 06:16:05 IST'"""
+    return (moment or now_ist()).strftime("%d %b %Y, %H:%M:%S IST")
+
+
+st.set_page_config(page_title=APP_NAME, page_icon="✉️", layout="wide")
 ss = st.session_state
 
 
@@ -111,8 +127,9 @@ def gate() -> None:
         return
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
-        st.subheader("✉️ Mail Merge")
+        st.subheader(f"✉️ {APP_NAME}")
         st.caption("For the Examination Section only.")
+        st.caption(f"{APP_LABEL} · Developed by {DEVELOPER}")
         pw = st.text_input("App password", type="password", key="gate_password")
         if st.button("Open", type="primary", key="gate_btn"):
             if hmac.compare_digest(pw.strip().encode("utf-8"), need.encode("utf-8")):
@@ -220,7 +237,8 @@ def send_rows(tpl, rows, nums, cfg, password, pause, sig, files_for) -> None:
                     "recipients": "; ".join(rcpts),
                     "status": status,
                     "error": error,
-                    "time": datetime.now().isoformat(timespec="seconds"),
+                    "time": stamp(),
+                    "app": APP_LABEL,
                 }
                 bar.progress(i / len(nums), text=f"{i} of {len(nums)}")
                 if pause and i < len(nums):
@@ -253,21 +271,27 @@ def letter_problem(attach_name: str, pdfs: list) -> str:
 
 
 def log_csv(results: dict) -> bytes:
+    """The send log. Every line carries the app name and the time (IST)."""
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["row", "recipients", "status", "error", "time"])
+    writer.writerow(["row", "recipients", "status", "error", "time", "app"])
     for num in sorted(results):
         r = results[num]
-        writer.writerow([r["row"], r["recipients"], r["status"], r["error"], r["time"]])
+        writer.writerow([r["row"], r["recipients"], r["status"], r["error"],
+                         r["time"], r.get("app", APP_LABEL)])
+    writer.writerow([])
+    writer.writerow([f"Log made by {APP_LABEL} on {stamp()}",
+                     f"Developed by {DEVELOPER}"])
     return buf.getvalue().encode("utf-8-sig")
 
 
 # --------------------------------------------------------------- page ----
 gate()
 
-st.title("✉️ Mail Merge")
+st.title(f"✉️ {APP_NAME}")
 st.caption("One personal email for every row of your list. "
            "Go through the tabs from left to right. Nothing is sent until the last tab.")
+st.caption(f"**{APP_LABEL}** · Developed by **{DEVELOPER}** · {stamp()}")
 status = st.empty()                      # progress line, filled at the end
 
 with st.sidebar:
@@ -804,7 +828,9 @@ with send_col:
         st.error(ss.pop("send_error"))
 
     if done and not pending:
-        st.success(f"Finished: all {len(rows)} emails were sent.")
+        last = max(done.values(), key=lambda r: r["row"])["time"]
+        st.success(f"Finished: all {len(rows)} emails were sent by {APP_NAME}. "
+                   f"Last one at {last}.")
     else:
         label = (f"Retry {len(pending)} failed or unsent row(s)" if done
                  else f"Send {len(pending)} email(s)")
@@ -836,7 +862,8 @@ with log_col:
         m2.metric("Failed", len(shown) - sent)
         st.dataframe([shown[n] for n in sorted(shown)], hide_index=True)
         st.download_button("Download log (CSV)", log_csv(shown),
-                           file_name="mailmerge_log.csv", mime="text/csv", key="log_btn")
+                           file_name=f"{APP_NAME}_log_{now_ist():%Y-%m-%d_%H%M}.csv",
+                           mime="text/csv", key="log_btn")
 
 # ---- progress line under the title ---------------------------------------
 sent_now = sum(1 for r in done.values() if r["status"] == "sent")
