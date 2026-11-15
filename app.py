@@ -142,9 +142,10 @@ def secret_images() -> dict:
 def check_login(host, port, security, username, password) -> None:
     try:
         with Sender(ServerConfig(host, port, security, username or None),
-                    password, allow_prompt=False):
-            pass
-        ss["login_note"] = ("success", "Login is OK. The app can send email from here.")
+                    password, allow_prompt=False) as sender:
+            used = sender.config.port
+        ss["login_note"] = ("success", "Login is OK. The app can send email from here"
+                            + (f" (through port {used})." if used != port else "."))
     except Exception as exc:
         ss["login_note"] = ("error", str(exc))
 

@@ -444,3 +444,43 @@ def test_fit_image_any_name_any_format():
     assert image_role("signAND-removebg-preview.png") == "Signature"
     assert image_role("Admit_card_background.png") == "Letterhead"
     assert image_role("photo1.png") == "Image"
+
+
+# --------------------------------------------- second mail port ----
+def test_gmail_falls_back_to_port_465_when_587_is_closed(monkeypatch):
+    from mailmerge import Sender, ServerConfig
+    calls = []
+
+    class Closed587:
+        def __init__(self, host, port, timeout=None, **kw):
+            calls.append(("plain", port))
+            raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+
+    class Open465(FakeSMTP):
+        def __init__(self, host, port, context=None, timeout=None):
+            calls.append(("ssl", port))
+
+    monkeypatch.setattr(smtplib, "SMTP", Closed587)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", Open465)
+    with Sender(ServerConfig("smtp.gmail.com", 587, "starttls", "a@gmail.com"), "secret") as s:
+        assert s.config.port == 465 and s.config.security == "ssl"
+    assert calls == [("plain", 587), ("ssl", 465)]
+
+    # Both closed: one clear message, no endless tries.
+    monkeypatch.setattr(smtplib, "SMTP_SSL", Closed587)
+    with pytest.raises(MergeError, match="port 587 or 465.*block outgoing email"):
+        Sender(ServerConfig("smtp.gmail.com", 587, "starttls", "a@gmail.com"), "secret").__enter__()
+
+    # Another server has no second door: the old message stays.
+    with pytest.raises(MergeError, match=r"Cannot connect to mail.kits.edu:587"):
+        Sender(ServerConfig("mail.kits.edu", 587, "starttls"), "x").__enter__()
+
+
+def test_wrong_password_does_not_try_the_other_port(monkeypatch):
+    from mailmerge import Sender, ServerConfig
+    ssl_calls = []
+    monkeypatch.setattr(smtplib, "SMTP", FakeSMTP)
+    monkeypatch.setattr(smtplib, "SMTP_SSL", lambda *a, **k: ssl_calls.append(1))
+    with pytest.raises(MergeError, match="Login failed"):
+        Sender(ServerConfig("smtp.gmail.com", 587, "starttls", "a@gmail.com"), "wrong").__enter__()
+    assert ssl_calls == []

@@ -16,6 +16,11 @@ from .core import MergeError
 
 PASSWORD_ENV = "MAILMERGE_PASSWORD"
 
+# Servers that accept mail on two ports. If the first is closed, try the other.
+OTHER_DOORS = {
+    "smtp.gmail.com": [(587, "starttls"), (465, "ssl")],
+}
+
 
 @dataclass
 class ServerConfig:
@@ -71,24 +76,51 @@ class Sender:
             self.password = getpass.getpass(f"SMTP password for {self.config.username}: ")
         return self.password
 
-    def _connect(self) -> None:
-        c = self.config
+    def _open(self, c: ServerConfig) -> None:
+        """One try with one port. Raises the plain smtplib / OS error."""
         ctx = ssl.create_default_context()
-        try:
-            if c.security == "ssl":
-                self._smtp = smtplib.SMTP_SSL(c.host, c.port, context=ctx, timeout=30)
-            else:
-                self._smtp = smtplib.SMTP(c.host, c.port, timeout=30)
-                if c.security == "starttls":
-                    self._smtp.starttls(context=ctx)
-            if c.username:
-                self._smtp.login(c.username, self._get_password())
-        except smtplib.SMTPAuthenticationError as exc:
-            raise MergeError(
-                "Login failed. For Gmail, use an App Password, not your normal password."
-            ) from exc
-        except (OSError, smtplib.SMTPException) as exc:
-            raise MergeError(f"Cannot connect to {c.host}:{c.port}: {exc}") from exc
+        if c.security == "ssl":
+            self._smtp = smtplib.SMTP_SSL(c.host, c.port, context=ctx, timeout=30)
+        else:
+            self._smtp = smtplib.SMTP(c.host, c.port, timeout=30)
+            if c.security == "starttls":
+                self._smtp.starttls(context=ctx)
+        if c.username:
+            self._smtp.login(c.username, self._get_password())
+
+    def _connect(self) -> None:
+        """Connect and log in.
+
+        Some networks and cloud hosts close one mail port but not the other.
+        For a server known to offer both, the second door is tried
+        automatically, and the one that works is kept for the next emails.
+        """
+        first = self.config
+        tries = [first] + [
+            ServerConfig(first.host, port, security, first.username)
+            for port, security in OTHER_DOORS.get(first.host.lower(), [])
+            if port != first.port
+        ]
+        failures = []
+        for c in tries:
+            try:
+                self._open(c)
+                self.config = c
+                return
+            except smtplib.SMTPAuthenticationError as exc:
+                raise MergeError(
+                    "Login failed. For Gmail, use an App Password, not your normal password."
+                ) from exc
+            except (OSError, smtplib.SMTPException) as exc:
+                failures.append((c.port, str(exc) or exc.__class__.__name__))
+        if len(failures) == 1:
+            port, why = failures[0]
+            raise MergeError(f"Cannot connect to {first.host}:{port}: {why}")
+        ports = " or ".join(str(p) for p, _ in failures)
+        raise MergeError(
+            f"Cannot connect to {first.host} on port {ports}: {failures[-1][1]}. "
+            "This network or host seems to block outgoing email."
+        )
 
     def __enter__(self) -> "Sender":
         self._connect()
