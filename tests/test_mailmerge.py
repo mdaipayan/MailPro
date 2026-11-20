@@ -524,3 +524,17 @@ def test_letters_build_with_russian_a_and_bad_character_is_located():
     tex_utf8 = tex.replace(r"\usepackage{csvsimple}", r"\usepackage[utf8]{inputenc}\usepackage{csvsimple}")
     with pytest.raises(MergeError, match=r"row 2 column 'place'.*Retype it in the CSV"):
         build_letters("letter.tex", tex_utf8, chinese)
+
+
+def test_list_templates_match_the_letters():
+    from pathlib import Path
+    from mailmerge import load_library, parse_database
+    sets, _ = load_library(Path(__file__).parent.parent / "letter_templates")
+    needed = {x.title: x.needed_columns() for x in sets}
+    assert needed["Paper Setter Mail"][:4] == ["email", "salutation", "name", "institute"]
+    assert "submissiondate" in needed["Paper Setter Mail"]
+    assert "date" in needed["Valuer Mail"] and "day" in needed["External Practical Mail"]
+    for x in sets:
+        row = parse_database(x.list_template)[0]
+        assert row["email"].endswith("@example.com")           # only invented data
+        assert set(x.needed_columns()) <= set(row)

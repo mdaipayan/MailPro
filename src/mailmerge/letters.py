@@ -293,6 +293,27 @@ class LetterSet:
     support: Tuple[File, ...] = ()            # images: the set's own + _shared/
     files: Dict[str, bytes] = field(default_factory=dict)  # shared files named in the list
     email: Optional[Tuple[str, str]] = None   # (subject, body) from email.txt
+    list_template: Optional[bytes] = None     # list_template.csv: the columns the list needs
+
+    def template_columns(self) -> List[str]:
+        """Column names of list_template.csv, in order."""
+        if not self.list_template:
+            return []
+        return [h.strip() for h in _decode(self.list_template).splitlines()[0].split(",")
+                if h.strip()]
+
+    def needed_columns(self) -> List[str]:
+        """Columns the letters or the email text actually use.
+
+        A template column is needed when a letter prints it (\\name) or the
+        email text uses it ({{ name }}). 'email' is always needed.
+        """
+        used = {"email"}
+        for _, tex in self.letters:
+            used |= set(re.findall(r"\\([A-Za-z]+)", _decode(tex)))
+        if self.email:
+            used |= set(re.findall(r"\{\{\s*(\w+)", self.email[0] + self.email[1]))
+        return [c for c in self.template_columns() if c in used]
 
     @staticmethod
     def attachment_name(tex_name: str) -> str:
@@ -301,7 +322,7 @@ class LetterSet:
         return stem[:1].upper() + stem[1:] + ".pdf"
 
 
-_SKIP = {"email.txt", "title.txt", "readme.txt", "readme.md"}
+_SKIP = {"email.txt", "title.txt", "list_template.csv", "readme.txt", "readme.md"}
 _MAX_LIBRARY_FILE = 30 * 1024 * 1024
 
 
@@ -357,5 +378,6 @@ def load_library(root: Union[str, Path]) -> Tuple[List[LetterSet], Tuple[File, .
             support=tuple(sorted(images.items())),
             files=dict(_plain_files(folder / "files")),
             email=email,
+            list_template=next((d for n, d in own if n.lower() == "list_template.csv"), None),
         ))
     return sets, shared
