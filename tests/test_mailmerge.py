@@ -492,3 +492,35 @@ def test_library_titles_from_title_txt():
     sets, _ = load_library(Path(__file__).parent.parent / "letter_templates")
     assert [x.title for x in sets] == ["Paper Setter Mail", "Valuer Mail", "External Practical Mail"]
     assert [x.key for x in sets] == ["1_paper_setter", "2_valuer", "3_external_practical"]
+
+
+# ---------------------------------------- look-alike letters (U+0410) ----
+def test_russian_a_in_a_course_code_is_fixed_and_reported():
+    from mailmerge import clean_value, look_alike_report, parse_database
+    data = ("sl_no,name,coursecode\n"
+            "1,Asha,OECES3T004-А\n"            # Russian A at the end
+            "2,Анна,CE501\n"     # a real Russian name: left alone
+            "3,Ravi​ Kale,CE 502\n")       # invisible space, non-breaking space
+    rows = parse_database(data)
+    assert rows[0]["coursecode"] == "OECES3T004-A" and rows[0]["coursecode"].isascii()
+    assert rows[1]["name"] == "Анна"
+    assert rows[2]["name"] == "Ravi Kale" and rows[2]["coursecode"] == "CE 502"
+    report = look_alike_report(data)
+    assert [(n, c) for n, c, _, _ in report] == [(1, "coursecode"), (3, "name"), (3, "coursecode")]
+    assert "Russian letter А (U+0410) changed to English A" in report[0][3]
+    assert clean_value("plain") == ("plain", [])
+
+
+@needs_latex
+def test_letters_build_with_russian_a_and_bad_character_is_located():
+    pytest.importorskip("pypdf")
+    from mailmerge.letters import build_letters
+    tex = LETTER_TEX.replace("EXTRA", "")
+    data = LETTER_CSV.replace("CE_501", "OECES3T004-А")
+    letters = build_letters("letter.tex", tex, data)
+    assert len(letters) == 2 and "OECES3T004-A" in _pdf_text(letters[0])
+
+    chinese = LETTER_CSV.replace("Nagpur", "中")          # cannot be printed
+    tex_utf8 = tex.replace(r"\usepackage{csvsimple}", r"\usepackage[utf8]{inputenc}\usepackage{csvsimple}")
+    with pytest.raises(MergeError, match=r"row 2 column 'place'.*Retype it in the CSV"):
+        build_letters("letter.tex", tex_utf8, chinese)

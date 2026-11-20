@@ -211,6 +211,23 @@ def odd_letters(pdfs: List[bytes]) -> List[int]:
     return [i for i, c in enumerate(counts, start=1) if c < usual]
 
 
+def _where_is_character(message: str, csv_data: Union[bytes, str]) -> str:
+    """Add the row and column to a LaTeX 'Unicode character' error."""
+    m = re.search(r"U\+([0-9A-Fa-f]{4,6})", message)
+    if not m or "Unicode character" not in message:
+        return message
+    ch = chr(int(m.group(1), 16))
+    headers, rows = parse_table(csv_data)
+    spots = [(i, col) for i, row in enumerate(rows, start=1)
+             for col, value in zip(headers, row) if ch in value]
+    if not spots:
+        return message
+    where = ", ".join(f"row {i} column '{col}'" for i, col in spots[:5])
+    more = f" and {len(spots) - 5} more" if len(spots) > 5 else ""
+    return (f"{message.split(':')[0]}: the list has a character that LaTeX cannot print, "
+            f"{ch} (U+{ord(ch):04X}), in {where}{more}. Retype it in the CSV.")
+
+
 def build_letters(
     tex_name: str,
     tex_source: Union[bytes, str],
@@ -246,7 +263,10 @@ def build_letters(
                 (folder / _safe_name(name)).write_bytes(content)
 
         put_csv(full_csv)
-        pages = _split(_compile(folder, tex_name, timeout))
+        try:
+            pages = _split(_compile(folder, tex_name, timeout))
+        except MergeError as exc:
+            raise MergeError(_where_is_character(str(exc), csv_data)) from None
         if len(pages) == n_rows:
             return pages
 
