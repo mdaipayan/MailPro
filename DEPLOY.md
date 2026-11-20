@@ -79,3 +79,23 @@ If you do not want to upload the two pictures each time, they can be stored in
 the app's Secrets. Run `python tools/make_secrets.py` on a PC that has the
 pictures in `letter_templates/_shared/`, and paste the file it writes into the
 Secrets box. The two upload boxes then do not appear.
+
+## Optional: save the sender App Passwords
+
+So that nobody has to type the Gmail App Password, add the sender addresses to
+the Secrets box (Streamlit Cloud → app → Settings → Secrets):
+
+```toml
+app_password = "a-long-password-to-open-the-app"
+
+[sender_passwords]
+"coe@kits.edu" = "xxxx xxxx xxxx xxxx"
+"deputycoe@kits.edu" = "xxxx xxxx xxxx xxxx"
+```
+
+The left panel then has a **Send from** list with these addresses. The App
+Password is filled in by itself and is never shown on the page.
+
+Never write these passwords in any file in GitHub: this repository is public.
+Anyone who opens the app can send email as these addresses, so the app password
+(first line) must be long and known only to the person who uses the app.

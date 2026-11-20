@@ -140,6 +140,29 @@ def gate() -> None:
     st.stop()
 
 
+def saved_senders() -> dict:
+    """Sender addresses whose App Password is stored in Streamlit secrets.
+
+    Secrets format (private, never in GitHub):
+        [sender_passwords]
+        "coe@kits.edu" = "abcd efgh ijkl mnop"
+    Returns {address: password}. The passwords are never shown on the page.
+    """
+    out = {}
+    try:
+        table = st.secrets.get("sender_passwords", {})
+        for addr in table:
+            value = str(table[addr]).strip()
+            if "@" in str(addr) and value:
+                out[str(addr).strip().lower()] = value
+    except Exception:
+        pass
+    return out
+
+
+OTHER_SENDER = "Another address…"
+
+
 def secret_images() -> dict:
     """Letterhead and signature kept in Streamlit secrets, never in GitHub.
 
@@ -303,12 +326,26 @@ with st.sidebar:
         host = st.text_input("SMTP host", key="host").strip()
         port = int(st.number_input("Port", 1, 65535, 587, key="port"))
         security = st.selectbox("Security", ["starttls", "ssl", "none"], key="security")
-    username = st.text_input("Your email address (login)", key="username").strip()
-    password = st.text_input(
-        "App Password", type="password", key="password",
-        help="Gmail: Google Account → Security → App passwords. "
-             "Your normal Gmail password will not work.",
-    ) or os.environ.get("MAILMERGE_PASSWORD", "")
+    senders = saved_senders()
+    choice = OTHER_SENDER
+    if senders:
+        choice = st.selectbox(
+            "Send from", list(senders) + [OTHER_SENDER], key="sender_choice",
+            help="The App Password of these addresses is stored in the app's private "
+                 "Secrets, so you do not type it.")
+    if choice != OTHER_SENDER:
+        username = choice
+        password = senders[choice]
+        st.caption("🔑 App Password: saved for this address.")
+    else:
+        username = st.text_input("Your email address (login)", key="username").strip()
+        saved = senders.get(username.lower(), "")
+        password = st.text_input(
+            "App Password", type="password", key="password",
+            placeholder="saved for this address" if saved else "",
+            help="Gmail: Google Account → Security → App passwords. "
+                 "Your normal Gmail password will not work.",
+        ) or saved or os.environ.get("MAILMERGE_PASSWORD", "")
     if PRESETS[provider]:
         from_addr = username
     else:
