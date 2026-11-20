@@ -197,6 +197,14 @@ def use_sample() -> None:
     ss["body"] = SAMPLE_BODY
 
 
+def choose_mail_type(library) -> None:
+    """Mail type chosen at the top: pick its letters and its email text."""
+    chosen = next((x for x in library if x.title == ss.get("mail_type")), None)
+    ss["letter_set"] = chosen.title if chosen else "(none)"
+    if chosen and chosen.email:
+        ss["subject"], ss["body"] = chosen.email
+
+
 def use_email_text(subject: str, body: str) -> None:
     ss["subject"], ss["body"] = subject, body
 
@@ -315,6 +323,21 @@ st.title(f"✉️ {APP_NAME}")
 st.caption("One personal email for every row of your list. "
            "Go through the tabs from left to right. Nothing is sent until the last tab.")
 st.caption(f"**{APP_LABEL}** · Developed by **{DEVELOPER}** · {stamp()}")
+
+OTHER_MAIL = "Other mail"
+library, shared_images = load_library(LIBRARY_DIR)
+if library:
+    mail_type = st.radio(
+        "**What are you sending?**", [x.title for x in library] + [OTHER_MAIL],
+        index=None, horizontal=True, key="mail_type",
+        on_change=choose_mail_type, args=(library,),
+        help="Choosing a mail type sets its letters (tab 3) and its email text (tab 2). "
+             "You can still change both.")
+    if mail_type is None:
+        st.caption("Choose the mail type first. Then upload the list in tab 1.")
+    elif mail_type != OTHER_MAIL:
+        st.caption(f"✔ Letters and email text for **{mail_type}** are set. "
+                   "Upload its list in tab 1.")
 status = st.empty()                      # progress line, filled at the end
 
 with st.sidebar:
@@ -477,7 +500,6 @@ with tab_files:
         common = [(f.name, f.getvalue()) for f in common_up or []]
 
     with src_letters:
-        library, shared_images = load_library(LIBRARY_DIR)
         private_images = secret_images()          # from Streamlit secrets, not from GitHub
         shared_images = tuple(sorted({**dict(shared_images), **private_images}.items()))
         support = tuple(shared_images)
@@ -529,7 +551,7 @@ with tab_files:
                         if still:
                             text = ("needs the image " + ", ".join(still) + " ("
                                     + " and ".join(image_role(n).lower() for n in still)
-                                    + "). Upload it above. The letter is not made without it.")
+                                    + "). Upload it in tab 3 → B · Letters. The letter is not made without it.")
                             letter_errors.append(f"{attach_name} {text}")
                             t2.warning(f"This letter {text}")
                             continue

@@ -374,3 +374,20 @@ def test_saved_sender_password_is_used_and_never_shown(monkeypatch):
     at.sidebar.text_input(key="username").input("COE@kits.edu").run()
     at.sidebar.button(key="login_btn").click().run()
     assert LoginSpy.logins[-1] == ("COE@kits.edu", "abcdefghijklmnop")
+
+
+# --------------------------------------------------------- mail type ----
+@needs_latex
+def test_mail_type_sets_letters_and_email_text(app):
+    pytest.importorskip("pypdf")
+    at = app
+    box = at.radio(key="mail_type")
+    assert box.options == ["Result letters", "Wrong list", "Other mail"] and box.value is None
+    box.set_value("Result letters").run()
+    assert not at.exception
+    assert at.selectbox(key="letter_set").value == "Result letters"
+    assert at.text_input(key="subject").value == "Result of {{ name }}"
+    assert any("2 letters made" in s.value for s in at.success)
+
+    at.radio(key="mail_type").set_value("Other mail").run()
+    assert at.selectbox(key="letter_set").value == "(none)"
