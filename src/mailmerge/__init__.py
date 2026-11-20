@@ -5,6 +5,8 @@ from .core import (
     MessageTemplate,
     build_message,
     check_rows,
+    clean_value,
+    look_alike_report,
     load_template,
     parse_database,
     read_database,
@@ -20,6 +22,8 @@ __all__ = [
     "MessageTemplate",
     "build_message",
     "check_rows",
+    "clean_value",
+    "look_alike_report",
     "load_template",
     "parse_database",
     "read_database",
@@ -39,4 +43,4 @@ __all__ = [
     "ServerConfig",
     "Sender",
 ]
-__version__ = "0.9.1"
+__version__ = "0.9.2"

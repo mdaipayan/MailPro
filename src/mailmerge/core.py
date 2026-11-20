@@ -48,12 +48,84 @@ def _decode(raw: bytes) -> str:
     raise MergeError("Cannot read the file; save it as CSV UTF-8.")
 
 
+# Letters from other alphabets that look exactly like English letters. They
+# get into a list by copy-paste or a wrong keyboard, and LaTeX cannot print
+# them ("Unicode character A (U+0410)").
+LOOK_ALIKES = {
+    # Russian / Cyrillic
+    "\u0410": "A", "\u0412": "B", "\u0415": "E", "\u041a": "K", "\u041c": "M",
+    "\u041d": "H", "\u041e": "O", "\u0420": "P", "\u0421": "C", "\u0422": "T",
+    "\u0423": "Y", "\u0425": "X", "\u0406": "I", "\u0408": "J", "\u0405": "S",
+    "\u0430": "a", "\u0435": "e", "\u043e": "o", "\u0440": "p", "\u0441": "c",
+    "\u0443": "y", "\u0445": "x", "\u0456": "i", "\u0458": "j", "\u0455": "s",
+    # Greek
+    "\u0391": "A", "\u0392": "B", "\u0395": "E", "\u0396": "Z", "\u0397": "H",
+    "\u0399": "I", "\u039a": "K", "\u039c": "M", "\u039d": "N", "\u039f": "O",
+    "\u03a1": "P", "\u03a4": "T", "\u03a5": "Y", "\u03a7": "X", "\u03bf": "o",
+}
+INVISIBLE = {"\u200b": "", "\u200c": "", "\u200d": "", "\u2060": "", "\ufeff": "",
+             "\u00a0": " ", "\u2009": " ", "\u202f": " "}
+_LATIN = re.compile(r"[A-Za-z0-9]")
+
+
+def clean_value(value: str) -> Tuple[str, List[str]]:
+    """Fix look-alike letters and invisible characters in one cell.
+
+    Look-alike letters are changed only when the cell also has English
+    letters or digits (a real Russian or Greek word is left as it is).
+    Returns (clean value, list of changes such as 'Russian letter А -> A').
+    """
+    changes: List[str] = []
+    if value.isascii():
+        return value, changes
+    mixed = bool(_LATIN.search(value))
+    out = []
+    for ch in value:
+        if ch in INVISIBLE:
+            out.append(INVISIBLE[ch])
+            changes.append(f"invisible character U+{ord(ch):04X} removed")
+        elif mixed and ch in LOOK_ALIKES:
+            out.append(LOOK_ALIKES[ch])
+            kind = "Russian" if 0x0400 <= ord(ch) <= 0x04FF else "Greek"
+            changes.append(f"{kind} letter {ch} (U+{ord(ch):04X}) changed to English {LOOK_ALIKES[ch]}")
+        else:
+            out.append(ch)
+    return "".join(out), sorted(set(changes))
+
+
+def look_alike_report(data: Union[bytes, str]) -> List[Tuple[int, str, str, str]]:
+    """Every cell that clean_value changes: (row number, column, old value, change)."""
+    text = _decode(data) if isinstance(data, bytes) else data.lstrip("\ufeff")
+    try:
+        dialect = csv.Sniffer().sniff(text[:4096], delimiters=",;\t")
+    except csv.Error:
+        dialect = csv.excel
+    reader = csv.reader(io.StringIO(text, newline=""), dialect=dialect)
+    try:
+        headers = [(h or "").strip() for h in next(reader)]
+    except StopIteration:
+        return []
+    report = []
+    num = 0
+    for raw in reader:
+        values = [(v or "").strip() for v in raw[:len(headers)]]
+        if not any(values):
+            continue
+        num += 1
+        for col, value in zip(headers, values):
+            _, changes = clean_value(value)
+            for change in changes:
+                report.append((num, col, value, change))
+    return report
+
+
 def parse_table(data: Union[bytes, str]) -> Tuple[List[str], List[List[str]]]:
     """Parse CSV content into (original column names, rows as lists).
 
     - Handles a UTF-8 BOM (Excel "CSV UTF-8") and Windows-1252 files.
     - Detects comma, semicolon or tab delimiters.
     - Strips spaces around names and values; skips blank lines.
+    - Fixes look-alike letters and invisible characters (see clean_value).
     """
     text = _decode(data) if isinstance(data, bytes) else data.lstrip("\ufeff")
     if not text.strip():
@@ -74,7 +146,7 @@ def parse_table(data: Union[bytes, str]) -> Tuple[List[str], List[List[str]]]:
         values = [(v or "").strip() for v in raw[:len(headers)]]
         values += [""] * (len(headers) - len(values))
         if any(values):
-            rows.append(values)
+            rows.append([clean_value(v)[0].strip() for v in values])
     return headers, rows
 
 

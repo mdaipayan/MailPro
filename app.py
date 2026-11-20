@@ -38,7 +38,8 @@ from mailmerge.attachments import (assign_files, check_size, columns_naming_file
                                    expand_uploads, pick_files)
 from mailmerge.letters import (LetterSet, build_letters, fit_image, image_role,
                                load_library, missing_images, odd_letters)
-from mailmerge.core import ADDRESS_RE, MergeError, MessageTemplate, check_rows, parse_database
+from mailmerge.core import (ADDRESS_RE, MergeError, MessageTemplate, check_rows,
+                            look_alike_report, parse_database)
 from mailmerge.sender import Sender, ServerConfig
 from mailmerge import __version__
 
@@ -428,6 +429,16 @@ with tab_list:
     columns = list(rows[0])
     st.dataframe([{"row": i, **r} for i, r in enumerate(rows, start=1)], hide_index=True)
     st.caption(f"**{len(rows)} rows** · fields: " + ", ".join(f"`{c}`" for c in columns))
+    fixed = look_alike_report(data)
+    if fixed:
+        cells = sorted({(n, c) for n, c, _, _ in fixed})
+        st.warning(
+            f"{len(cells)} cell(s) had a letter from another alphabet or an invisible "
+            "character, which looks right but breaks the letters and file names. "
+            "The app has corrected them for this send. Please also correct your CSV file.")
+        with st.expander("Show the corrected cells"):
+            st.dataframe([{"row": n, "column": c, "value in the file": v, "correction": ch}
+                          for n, c, v, ch in fixed], hide_index=True)
 
     email_col = next((c for c in columns if "mail" in c.lower()), None)
     name_col = next((c for c in columns if "name" in c.lower()), None)
