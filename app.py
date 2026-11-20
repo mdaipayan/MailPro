@@ -327,6 +327,7 @@ st.caption(f"**{APP_LABEL}** · Developed by **{DEVELOPER}** · {stamp()}")
 
 OTHER_MAIL = "Other mail"
 library, shared_images = load_library(LIBRARY_DIR)
+mail_type = None
 if library:
     mail_type = st.radio(
         "**What are you sending?**", [x.title for x in library] + [OTHER_MAIL],
@@ -339,6 +340,7 @@ if library:
     elif mail_type != OTHER_MAIL:
         st.caption(f"✔ Letters and email text for **{mail_type}** are set. "
                    "Upload its list in tab 1.")
+mail_set = next((x for x in library if x.title == mail_type), None)
 status = st.empty()                      # progress line, filled at the end
 
 with st.sidebar:
@@ -399,6 +401,14 @@ def stop_here(message: str, *later_tabs) -> None:
 
 # ---- tab 1: list ---------------------------------------------------------
 with tab_list:
+    if mail_set and mail_set.list_template:
+        st.download_button(
+            f"⬇ Download the blank list for {mail_set.title} (CSV)",
+            mail_set.list_template,
+            file_name=f"{mail_set.title.replace(' ', '_')}_list.csv", mime="text/csv",
+            key="list_template_btn",
+            help="Open it in Excel, replace the example row with your people, "
+                 "and save it as CSV UTF-8. Keep the first row as it is.")
     u1, u2 = st.columns([3, 1], vertical_alignment="bottom")
     uploaded = u1.file_uploader(
         "CSV file: first row = column names, one row per person",
@@ -429,6 +439,13 @@ with tab_list:
     columns = list(rows[0])
     st.dataframe([{"row": i, **r} for i, r in enumerate(rows, start=1)], hide_index=True)
     st.caption(f"**{len(rows)} rows** · fields: " + ", ".join(f"`{c}`" for c in columns))
+    if mail_set:
+        missing = [c for c in mail_set.needed_columns() if c not in columns]
+        if missing:
+            st.error(
+                f"This list does not fit **{mail_set.title}**. It has no column "
+                + ", ".join(f"`{c}`" for c in missing)
+                + ". Use the blank list above, or choose another mail type.")
     fixed = look_alike_report(data)
     if fixed:
         cells = sorted({(n, c) for n, c, _, _ in fixed})

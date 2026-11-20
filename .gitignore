@@ -17,3 +17,4 @@ letter_templates/**/*.jpeg
 *.csv
 !examples/**/*.csv
 !examples/*.csv
+!letter_templates/*/list_template.csv

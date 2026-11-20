@@ -391,3 +391,22 @@ def test_mail_type_sets_letters_and_email_text(app):
 
     at.radio(key="mail_type").set_value("Other mail").run()
     assert at.selectbox(key="letter_set").value == "(none)"
+
+
+def test_list_template_download_and_missing_column_warning(app, tmp_path, monkeypatch):
+    at = app
+    at.radio(key="mail_type").set_value("Result letters").run()
+    # the test library has no list_template.csv: no download button
+    assert not any(b.key == "list_template_btn" for b in at.get("download_button"))
+
+
+def test_real_library_offers_list_and_checks_columns(monkeypatch):
+    from pathlib import Path
+    monkeypatch.setenv("MAILMERGE_TEMPLATES", str(Path(APP).parent / "letter_templates"))
+    monkeypatch.delenv("MAILMERGE_APP_PASSWORD", raising=False)
+    at = AppTest.from_file(APP, default_timeout=60).run()
+    at.radio(key="mail_type").set_value("Paper Setter Mail").run()
+    assert any(b.key == "list_template_btn" for b in at.get("download_button"))
+    at.button(key="sample_btn").click().run()        # student sample: wrong list
+    assert any("does not fit **Paper Setter Mail**" in e.value and "`salutation`" in e.value
+               for e in at.error)

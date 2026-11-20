@@ -12,6 +12,8 @@ choose in tab 3 (B · Letters). You then need only the CSV list.
       Undertaking.tex         Appointment.tex -> Appointment.pdf
       title.txt             (optional) the name shown as "Mail type",
                               for example: Paper Setter Mail
+      list_template.csv     (optional) the columns the list must have, with one
+                              invented example row. Offered for download in tab 1.
       email.txt             (optional) the email text for this set
       files/                (optional) shared files named in the list:
                               syllabus PDFs, Guidelines.pdf, Remuneration.pdf ...
