@@ -86,7 +86,10 @@ class Sender:
             if c.security == "starttls":
                 self._smtp.starttls(context=ctx)
         if c.username:
-            self._smtp.login(c.username, self._get_password())
+            password = self._get_password()
+            if c.host.lower() in OTHER_DOORS:          # Gmail shows App Passwords as
+                password = "".join(password.split())  # "abcd efgh ijkl mnop"
+            self._smtp.login(c.username, password)
 
     def _connect(self) -> None:
         """Connect and log in.

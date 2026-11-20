@@ -140,6 +140,29 @@ def gate() -> None:
     st.stop()
 
 
+def saved_senders() -> dict:
+    """Sender addresses whose App Password is stored in Streamlit secrets.
+
+    Secrets format (private, never in GitHub):
+        [sender_passwords]
+        "coe@kits.edu" = "abcd efgh ijkl mnop"
+    Returns {address: password}. The passwords are never shown on the page.
+    """
+    out = {}
+    try:
+        table = st.secrets.get("sender_passwords", {})
+        for addr in table:
+            value = str(table[addr]).strip()
+            if "@" in str(addr) and value:
+                out[str(addr).strip().lower()] = value
+    except Exception:
+        pass
+    return out
+
+
+OTHER_SENDER = "Another address…"
+
+
 def secret_images() -> dict:
     """Letterhead and signature kept in Streamlit secrets, never in GitHub.
 
@@ -172,6 +195,14 @@ def use_sample() -> None:
     ss["to"] = "{{ name }} <{{ email }}>"
     ss["subject"] = SAMPLE_SUBJECT
     ss["body"] = SAMPLE_BODY
+
+
+def choose_mail_type(library) -> None:
+    """Mail type chosen at the top: pick its letters and its email text."""
+    chosen = next((x for x in library if x.title == ss.get("mail_type")), None)
+    ss["letter_set"] = chosen.title if chosen else "(none)"
+    if chosen and chosen.email:
+        ss["subject"], ss["body"] = chosen.email
 
 
 def use_email_text(subject: str, body: str) -> None:
@@ -292,6 +323,21 @@ st.title(f"✉️ {APP_NAME}")
 st.caption("One personal email for every row of your list. "
            "Go through the tabs from left to right. Nothing is sent until the last tab.")
 st.caption(f"**{APP_LABEL}** · Developed by **{DEVELOPER}** · {stamp()}")
+
+OTHER_MAIL = "Other mail"
+library, shared_images = load_library(LIBRARY_DIR)
+if library:
+    mail_type = st.radio(
+        "**What are you sending?**", [x.title for x in library] + [OTHER_MAIL],
+        index=None, horizontal=True, key="mail_type",
+        on_change=choose_mail_type, args=(library,),
+        help="Choosing a mail type sets its letters (tab 3) and its email text (tab 2). "
+             "You can still change both.")
+    if mail_type is None:
+        st.caption("Choose the mail type first. Then upload the list in tab 1.")
+    elif mail_type != OTHER_MAIL:
+        st.caption(f"✔ Letters and email text for **{mail_type}** are set. "
+                   "Upload its list in tab 1.")
 status = st.empty()                      # progress line, filled at the end
 
 with st.sidebar:
@@ -303,12 +349,26 @@ with st.sidebar:
         host = st.text_input("SMTP host", key="host").strip()
         port = int(st.number_input("Port", 1, 65535, 587, key="port"))
         security = st.selectbox("Security", ["starttls", "ssl", "none"], key="security")
-    username = st.text_input("Your email address (login)", key="username").strip()
-    password = st.text_input(
-        "App Password", type="password", key="password",
-        help="Gmail: Google Account → Security → App passwords. "
-             "Your normal Gmail password will not work.",
-    ) or os.environ.get("MAILMERGE_PASSWORD", "")
+    senders = saved_senders()
+    choice = OTHER_SENDER
+    if senders:
+        choice = st.selectbox(
+            "Send from", list(senders) + [OTHER_SENDER], key="sender_choice",
+            help="The App Password of these addresses is stored in the app's private "
+                 "Secrets, so you do not type it.")
+    if choice != OTHER_SENDER:
+        username = choice
+        password = senders[choice]
+        st.caption("🔑 App Password: saved for this address.")
+    else:
+        username = st.text_input("Your email address (login)", key="username").strip()
+        saved = senders.get(username.lower(), "")
+        password = st.text_input(
+            "App Password", type="password", key="password",
+            placeholder="saved for this address" if saved else "",
+            help="Gmail: Google Account → Security → App passwords. "
+                 "Your normal Gmail password will not work.",
+        ) or saved or os.environ.get("MAILMERGE_PASSWORD", "")
     if PRESETS[provider]:
         from_addr = username
     else:
@@ -440,7 +500,6 @@ with tab_files:
         common = [(f.name, f.getvalue()) for f in common_up or []]
 
     with src_letters:
-        library, shared_images = load_library(LIBRARY_DIR)
         private_images = secret_images()          # from Streamlit secrets, not from GitHub
         shared_images = tuple(sorted({**dict(shared_images), **private_images}.items()))
         support = tuple(shared_images)
@@ -492,7 +551,7 @@ with tab_files:
                         if still:
                             text = ("needs the image " + ", ".join(still) + " ("
                                     + " and ".join(image_role(n).lower() for n in still)
-                                    + "). Upload it above. The letter is not made without it.")
+                                    + "). Upload it in tab 3 → B · Letters. The letter is not made without it.")
                             letter_errors.append(f"{attach_name} {text}")
                             t2.warning(f"This letter {text}")
                             continue

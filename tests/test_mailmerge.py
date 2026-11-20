@@ -390,7 +390,7 @@ def test_load_library_and_auto_file_columns(tmp_path):
     from mailmerge.attachments import columns_naming_files
     (tmp_path / "_shared").mkdir()
     (tmp_path / "_shared" / "bg.png").write_bytes(b"BG")
-    s = tmp_path / "paper_setter"
+    s = tmp_path / "7_paper_setter"
     (s / "files").mkdir(parents=True)
     (s / "Appointment.tex").write_text("tex")
     (s / "sign.png").write_bytes(b"S")
@@ -401,7 +401,7 @@ def test_load_library_and_auto_file_columns(tmp_path):
     (tmp_path / "empty_folder").mkdir()
 
     sets, shared = load_library(tmp_path)
-    assert [x.key for x in sets] == ["paper_setter"] and sets[0].title == "Paper setter"
+    assert [x.key for x in sets] == ["7_paper_setter"] and sets[0].title == "Paper setter"
     assert [n for n, _ in sets[0].letters] == ["Appointment.tex"]
     assert [n for n, _ in sets[0].support] == ["bg.png", "sign.png"]
     assert sorted(sets[0].files) == ["3S_CE_SM.pdf", "Guidelines.pdf"]
@@ -484,3 +484,11 @@ def test_wrong_password_does_not_try_the_other_port(monkeypatch):
     with pytest.raises(MergeError, match="Login failed"):
         Sender(ServerConfig("smtp.gmail.com", 587, "starttls", "a@gmail.com"), "wrong").__enter__()
     assert ssl_calls == []
+
+
+def test_library_titles_from_title_txt():
+    from pathlib import Path
+    from mailmerge import load_library
+    sets, _ = load_library(Path(__file__).parent.parent / "letter_templates")
+    assert [x.title for x in sets] == ["Paper Setter Mail", "Valuer Mail", "External Practical Mail"]
+    assert [x.key for x in sets] == ["1_paper_setter", "2_valuer", "3_external_practical"]

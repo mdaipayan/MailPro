@@ -266,7 +266,7 @@ def build_letters(
 # ------------------------------------------------------ letter library ----
 @dataclass
 class LetterSet:
-    """One folder of the letter library, for example 'paper_setter'."""
+    """One folder of the letter library, for example '1_paper_setter'."""
     key: str                                  # folder name
     title: str                                # 'Paper setter'
     letters: List[File] = field(default_factory=list)     # (file name, LaTeX source)
@@ -281,7 +281,7 @@ class LetterSet:
         return stem[:1].upper() + stem[1:] + ".pdf"
 
 
-_SKIP = {"email.txt", "readme.txt", "readme.md"}
+_SKIP = {"email.txt", "title.txt", "readme.txt", "readme.md"}
 _MAX_LIBRARY_FILE = 30 * 1024 * 1024
 
 
@@ -329,7 +329,10 @@ def load_library(root: Union[str, Path]) -> Tuple[List[LetterSet], Tuple[File, .
                       if n.lower() == "email.txt"), None)
         sets.append(LetterSet(
             key=folder.name,
-            title=folder.name.replace("_", " ").strip().capitalize(),
+            title=next((_decode(d).strip().splitlines()[0].strip() for n, d in own
+                        if n.lower() == "title.txt" and _decode(d).strip()),
+                       re.sub(r"^\d+[_ -]*", "", folder.name).replace("_", " ")
+                       .strip().capitalize() or folder.name),
             letters=letters,
             support=tuple(sorted(images.items())),
             files=dict(_plain_files(folder / "files")),
